@@ -12,6 +12,32 @@ def connect():
 
     return psycopg2.connect("dbname=tournament")
 
+def deleteTournament():
+    """Remove all the tournament records from the database"""
+    conn = connect() # Create connection
+    c = conn.cursor() # Create cursor
+    c.execute('''
+        DELETE from tournament
+        ''') # Delete all records from tournament
+    conn.commit() # Commit deletion
+    conn.close() # Close connection
+
+def deleteATournament(tournament_id):
+    """Remove a single tournament record from the database
+
+    Args:
+        tournament_id: an integer specifying the tournament number.
+
+    """
+    conn = connect() # Create connection
+    c = conn.cursor() # Create cursor
+    bleach_id = bleach.clean(tournament_id) # Clean id
+    c.execute('''
+        DELETE from tournament WHERE id = %s
+        ''', (bleach_id,)) # Delete a single tournament
+    conn.commit() # Commit deletion
+    conn.close() # Close connection
+
 
 def deleteMatches():
     """Remove all the match records from the database."""
@@ -54,8 +80,23 @@ def countPlayers():
     return cp[0][0] # a multi dimensional array
     conn.close() # Close connection
 
+def createTournament(tournament_id):
+    """Creates a new tournament record in tournament database.
 
-def registerPlayer(name):
+    Args:
+        id: the id of the tournament, needs to be unique.
+    """
+    conn = connect() # Create connection
+    c = conn.cursor() # Create cursor
+    bleach_id = bleach.clean(tournament_id) # Clean id
+    c.execute('''
+        INSERT INTO tournament VALUES(%s)
+        ''', (bleach_id,)) # Insert new tournament
+    conn.commit() # Commit new record
+    conn.close() # Close connection
+
+
+def registerPlayer(name, tournament_id):
     """Adds a player to the tournament database.
 
     The database assigns a unique serial id number for the player.  (This
@@ -63,13 +104,15 @@ def registerPlayer(name):
 
     Args:
       name: the player's full name (need not be unique).
+      tournament_id: the tournament the player is registered to.
     """
     conn = connect() # Create connection
     c = conn.cursor() # Create cursor on connection
     bleach_name = bleach.clean(name) # Clean name
+    bleach_id = bleach.clean(tournament_id) # Clean id
     c.execute('''
-        INSERT INTO players(name) VALUES(%s)
-        ''', (bleach_name,)) # Insert bleach name into database
+        INSERT INTO players(name, tournament) VALUES(%s, %s)
+        ''', (bleach_name, bleach_id,)) # Insert bleach name and id into database
     conn.commit() # Commit new player
 
     c.execute('''
@@ -78,6 +121,7 @@ def registerPlayer(name):
     new_player = c.fetchall()
     new_id = new_player[0][0] # The player's id
     new_name = new_player[0][1] # The player's name
+    new_tournament = new_player[0][3] # The tournament the player id registered
 
     c.execute('''
         SELECT * FROM standings
@@ -87,18 +131,22 @@ def registerPlayer(name):
     if not isplayer: # If id doesn't already exist enter into standings
         c.execute('''
             INSERT INTO standings
-            VALUES(%s, %s, 0, 0)
-            ''', (new_id, new_name,)
+            VALUES(%s, %s, 0, 0, %s)
+            ''', (new_id, new_name, new_tournament,)
             ) # Insert new player into standings
         conn.commit() # Commit entry into standings
     conn.close() # Close connection
 
 
-def playerStandings():
+def playerStandings(tournament_id):
     """Returns a list of the players and their win records, sorted by wins.
 
     The first entry in the list should be the player in first place, or a player
     tied for first place if there is currently a tie.
+
+    Args:
+        tournament_id: The id of the tournament you wish
+        to find.
 
     Returns:
       A list of tuples, each of which contains (id, name, wins, matches):
@@ -109,29 +157,35 @@ def playerStandings():
     """
     conn = connect() # Create connection
     c = conn.cursor() # Create cursor
+    bleach_id = bleach.clean(tournament_id) # Clean id
     c.execute('''
-        SELECT * FROM standings ORDER BY wins DESC
-        ''') # Retrieve all records from standings
+        SELECT player_id, player_name, wins, matches
+        FROM standings
+        WHERE tournament = %s
+        ORDER BY wins DESC
+        ''', (bleach_id,)) # Retrieve all records that matches tournament
     standings = c.fetchall()
     return standings
     conn.close()
 
-def reportMatch(winner, loser):
+def reportMatch(winner, loser, tournament_id):
     """Records the outcome of a single match between two players.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
+      tournament_id: the id of the tournament the match is played in
     """
 
     conn = connect() # Create connection
     c = conn.cursor() # Create cursor on connection
     bleach_winner = bleach.clean(winner) # Cleaning winner
     bleach_loser = bleach.clean(loser) # Cleaning loser
+    bleach_id = bleach.clean(tournament_id) # Clean id
     c.execute('''
-        INSERT INTO matches(winner, loser)
-        VALUES(%s, %s)
-        ''', (bleach_winner, bleach_loser,)) # Insert in matches
+        INSERT INTO matches(winner, loser, tournament)
+        VALUES(%s, %s, %s)
+        ''', (bleach_winner, bleach_loser, tournament_id,)) # Insert in matches
     conn.commit() # Commit match
 
     # For winner
@@ -139,25 +193,30 @@ def reportMatch(winner, loser):
         UPDATE standings
         SET wins = wins + 1,
         matches = matches + 1
-        WHERE player_id = %s''', (bleach_winner,))
+        WHERE player_id = %s
+        AND tournament = %s''' , (bleach_winner, bleach_id,))
     conn.commit()
 
     # For loser
     c.execute('''
         UPDATE standings
         SET matches = matches + 1
-        WHERE player_id = %s''', (bleach_loser,))
+        WHERE player_id = %s
+        AND tournament = %s''', (bleach_loser, bleach_id,))
     conn.commit()
     conn.close() # Close connection
 
 
-def swissPairings():
+def swissPairings(tournament_id):
     """Returns a list of pairs of players for the next round of a match.
 
     Assuming that there are an even number of players registered, each player
     appears exactly once in the pairings.  Each player is paired with another
     player with an equal or nearly-equal win record, that is, a player adjacent
     to him or her in the standings.
+
+    Args:
+        tournament_id: The id of the tournament
 
     Returns:
       A list of tuples, each of which contains (id1, name1, id2, name2)
@@ -166,8 +225,8 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
-    cstandings = playerStandings() # Current standings
-    matches = []
+    cstandings = playerStandings(1) # Current standings
+    matches = [] # Empty array to pass in standings
 
     for p in range(0, len(cstandings), 2):
         m = (cstandings[p][0], cstandings[p][1],
