@@ -273,6 +273,38 @@ def playerNonBye(tournament_id):
     randomp = random.choice(player) # Pick a random player from list
     player = (randomp[0], randomp[1], "bye") # Create player entry with a bye
     return player
+    conn.close()
+
+def avoidDuplicate(p1, p2):
+    """ Returns whether 2 players have played each other before.
+
+    It takes the two players and sees if they have ever had
+    a match.
+
+    Args:
+        p1: An integer. The id of the first player
+        p2: An integer. The id of the second player
+
+    Returns:
+        A boolean whether the condition is True or False
+    """
+
+    conn = connect()  # Create connection
+    c = conn.cursor()  # Create cursor on connection
+
+    c.execute('''
+        SELECT * from matches
+        WHERE winner = %s AND loser = %s
+        OR winner = %s AND loser = %s
+        ''', (p1, p2, p1, p2,))
+    match = c.fetchall()
+    if match:
+        return True
+    else:
+        return False
+    print match
+    conn.close
+
 
 
 def swissPairings(tournament_id):
@@ -314,9 +346,24 @@ def swissPairings(tournament_id):
         conn.commit()
         conn.close()
 
-    for p in range(0, len(cstandings), 2):
+
+    for p in range(0, len(cstandings), 2): # To avoid rematches
+        x = p + 1 # The key of the second player
+        while avoidDuplicate(cstandings[p][0], cstandings[x][0]) == True:
+            if x == p: # This would only happen if they have played every player
+                break
+            elif x < len(cstandings) - 1:
+                x += 1
+                cstandings.insert(x+2, cstandings[x]) # Insert player in new position
+                del cstandings[x] # Delete the old record of the player
+            else: # In case it gets to the end of the list, start at beginning
+                x = 0
+                cstandings.insert(x+2, cstandings[x])
+                del cstandings[x]
+
         m = (cstandings[p][0], cstandings[p][1],
-            cstandings[p+1][0], cstandings[p+1][1])
-        matches.append(m)
+            cstandings[p+1][0], cstandings[p+1][1]) # Create entry for array
+        matches.append(m) # Append to list
+    conn.close()
 
     return matches

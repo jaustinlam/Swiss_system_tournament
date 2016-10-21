@@ -128,6 +128,7 @@ def testPairings():
         raise ValueError(
             "For eight players, swissPairings should return 4 pairs. Got {pairs}".format(pairs=len(pairings)))
     reportMatch(id1, id2, t)
+    reportMatch(id1, id2, t)
     reportMatch(id3, id4, t)
     reportMatch(id5, id6, t)
     reportMatch(id7, id8, t)
@@ -150,8 +151,46 @@ def testPairings():
                 "After one match, players with one win should be paired.")
     print "10. After one match, players with one win are properly paired."
 
-def testOddPairings():
-    """Tests if and odd amount of players results in a player give a bye"""
+# def testOddPairings():
+#     """Tests if and odd amount of players results in a player give a bye"""
+#     deleteMatches()
+#     deletePlayers()
+#     registerPlayer("Twilight Sparkle", t)
+#     registerPlayer("Fluttershy", t)
+#     registerPlayer("Applejack", t)
+#     registerPlayer("Pinkie Pie", t)
+#     registerPlayer("Rarity", t)
+#     registerPlayer("Rainbow Dash", t)
+#     registerPlayer("Princess Celestia", t)
+
+#     pairings = swissPairings(t)
+#     print pairings
+#     for i in pairings:
+#         if i[2] != "bye":
+#             reportMatch(i[0], i[2], t)
+
+#     print playerStandings(t)
+
+# def testDifferenttournament():
+#     """Tests if given players in different tournaments they show up in different standings"""
+#     x = 4321 # a second tournament id
+#     createTournament(x)
+#     deleteMatches()
+#     deletePlayers()
+#     registerPlayer("Twilight Sparkle", t)
+#     registerPlayer("Fluttershy", t)
+#     registerPlayer("Applejack", t)
+#     registerPlayer("Pinkie Pie", t)
+#     registerPlayer("Rarity", x)
+#     registerPlayer("Rainbow Dash", x)
+#     registerPlayer("Princess Celestia", x)
+#     registerPlayer("Princess Luna", x)
+
+#     print playerStandings(t)
+#     print playerStandings(x)
+
+def testRematches():
+    """Tests if the tournament avoids rematches"""
     deleteMatches()
     deletePlayers()
     registerPlayer("Twilight Sparkle", t)
@@ -161,32 +200,25 @@ def testOddPairings():
     registerPlayer("Rarity", t)
     registerPlayer("Rainbow Dash", t)
     registerPlayer("Princess Celestia", t)
+    registerPlayer("Princess Luna", t)
+    x = 1
+    while x <5:
+        standings = playerStandings(t)
+        [id1, id2, id3, id4, id5, id6, id7, id8] = [row[0] for row in standings]
+        reportMatch(id1, id2, t)
+        reportMatch(id3, id4, t)
+        reportMatch(id5, id6, t)
+        reportMatch(id7, id8, t)
+        pairings = swissPairings(t)
+        print pairings
+        x += 1
 
-    pairings = swissPairings(t)
-    print pairings
-    for i in pairings:
-        if i[2] != "bye":
-            reportMatch(i[0], i[2], t)
 
-    print playerStandings(t)
 
-def testDifferenttournament():
-    """Tests if given players in different tournaments they show up in different standings"""
-    x = 4321 # a second tournament id
-    createTournament(x)
-    deleteMatches()
-    deletePlayers()
-    registerPlayer("Twilight Sparkle", t)
-    registerPlayer("Fluttershy", t)
-    registerPlayer("Applejack", t)
-    registerPlayer("Pinkie Pie", t)
-    registerPlayer("Rarity", x)
-    registerPlayer("Rainbow Dash", x)
-    registerPlayer("Princess Celestia", x)
-    registerPlayer("Princess Luna", x)
 
-    print playerStandings(t)
-    print playerStandings(x)
+
+
+
 
 
 
@@ -197,6 +229,7 @@ if __name__ == '__main__':
     testStandingsBeforeMatches()
     testReportMatches()
     testPairings()
-    testOddPairings()
-    testDifferenttournament()
+    #testOddPairings()
+    #testDifferenttournament()
+    testRematches()
     print "Success!  All tests pass!"
