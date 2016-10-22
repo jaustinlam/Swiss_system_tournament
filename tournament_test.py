@@ -189,29 +189,29 @@ def testPairings():
 #     print playerStandings(t)
 #     print playerStandings(x)
 
-def testRematches():
-    """Tests if the tournament avoids rematches"""
-    deleteMatches()
-    deletePlayers()
-    registerPlayer("Twilight Sparkle", t)
-    registerPlayer("Fluttershy", t)
-    registerPlayer("Applejack", t)
-    registerPlayer("Pinkie Pie", t)
-    registerPlayer("Rarity", t)
-    registerPlayer("Rainbow Dash", t)
-    registerPlayer("Princess Celestia", t)
-    registerPlayer("Princess Luna", t)
-    x = 1
-    while x <5:
-        standings = playerStandings(t)
-        [id1, id2, id3, id4, id5, id6, id7, id8] = [row[0] for row in standings]
-        reportMatch(id1, id2, t)
-        reportMatch(id3, id4, t)
-        reportMatch(id5, id6, t)
-        reportMatch(id7, id8, t)
-        pairings = swissPairings(t)
-        print pairings
-        x += 1
+# def testRematches():
+#     """Tests if the tournament avoids rematches"""
+#     deleteMatches()
+#     deletePlayers()
+#     registerPlayer("Twilight Sparkle", t)
+#     registerPlayer("Fluttershy", t)
+#     registerPlayer("Applejack", t)
+#     registerPlayer("Pinkie Pie", t)
+#     registerPlayer("Rarity", t)
+#     registerPlayer("Rainbow Dash", t)
+#     registerPlayer("Princess Celestia", t)
+#     registerPlayer("Princess Luna", t)
+#     x = 1
+#     while x <5:
+#         standings = playerStandings(t)
+#         [id1, id2, id3, id4, id5, id6, id7, id8] = [row[0] for row in standings]
+#         reportMatch(id1, id2, t)
+#         reportMatch(id3, id4, t)
+#         reportMatch(id5, id6, t)
+#         reportMatch(id7, id8, t)
+#         pairings = swissPairings(t)
+#         print pairings
+#         x += 1
 
 
 
@@ -231,5 +231,5 @@ if __name__ == '__main__':
     testPairings()
     #testOddPairings()
     #testDifferenttournament()
-    testRematches()
+    # testRematches()
     print "Success!  All tests pass!"

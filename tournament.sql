@@ -14,8 +14,8 @@ CREATE TABLE tournament(
 -- Create table to register players.
 CREATE TABLE players(
     id serial PRIMARY KEY,
-    name text
-    registered timestamp default now()
+    name text,
+    registered timestamp default now(),
     tournament integer REFERENCES tournament (id) ON DELETE CASCADE
     );
 
@@ -27,14 +27,25 @@ CREATE TABLE matches(
     tournament integer REFERENCES tournament (id) ON DELETE CASCADE
     );
 
--- Create table to record standings.
-CREATE TABLE standings(
-    player_id integer REFERENCES players(id) ON DELETE CASCADE,
-    player_name text,
-    wins integer,
-    matches integer,
-    tournament integer REFERENCES tournament (id) ON DELETE CASCADE
-    );
+-- Create a view to generate a standings table for a given tournament.
+CREATE VIEW playerstandings AS
+    SELECT players.tournament, players.id, players.name,
+    count(wins.winner) AS wins,
+    (SELECT count(wins.winner)) +
+    (SELECT count(losses.loser)) AS matches
+    FROM players
+    LEFT JOIN matches as wins
+    ON players.id = wins.winner
+    LEFT JOIN matches as losses
+    ON players.id = losses.loser
+    GROUP BY players.id
+    ORDER BY wins DESC;
+
+
+
+
+
+
 
 
 
