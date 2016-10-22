@@ -11,35 +11,42 @@ Tournaments [Click Here.](https://en.wikipedia.org/wiki/Swiss-system_tournament)
 4. Install [VirtualBox](https://www.virtualbox.org)
 5. Launch the Vagrant VM and configure.
 6. To import the database navigate to the tournament folder on your machine.
-7. Launch psql and enter "create database tournament".
-8. Import in the tables and views with \i tournament.sql.
+7. Launch psql and enter 'create database tournament'.
+8. Import in the tables and views with '\i tournament.sql'.
 
 ## Usage
 1. Create a Python script in a new file. Import all from tournament.py
 2. Use the following methods to run your tournament:
 
 * createTournament(tournament_id)
-> Creates a new tournament
+> Creates a new tournament.
+
 * registerPlayer(name, tournament_id)
 > Register a new player to the tournament.
 
 * deleteTournaments()
-> Deletes all tournaments
+> Deletes all tournaments.
+
 * deleteATournament(tournament_id)
-> Deletes a single tournament
+> Deletes a single tournament.
+
 * deleteMatches()
-> Deletes all matches
+> Deletes all matches.
+
 * deletePlayers()
-> Deletes all players
+> Deletes all players.
 
 * countPlayers()
-> Returns a count of players
+> Returns a count of players.
+
 * playerStandings(tournament_id)
 > Returns a table of all players in the current tournaments standings.
+
 * reportMatch(winner, loser, tournament_id)
 > Report the result of match between 2 players.
+
 * swissPairings(tournament_id)
-> Based of the standings creates match ups of players for the next round.
+> Based off the standings creates match ups of players for the next round.
 
 3. Run your script from the file you created.
 
